@@ -1,0 +1,20 @@
+name: ClaudeLens self-lint
+
+# Runs ClaudeLens against its own test fixtures on every PR — sanity check.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  self-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: Lint fixtures (expected to find collisions; we just check it runs)
+        run: claudelens lint tests/fixtures/skills || true

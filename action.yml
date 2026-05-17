@@ -1,0 +1,51 @@
+name: "ClaudeLens"
+description: "Lint a .claude/skills/ directory for collisions, ambiguous triggers, and naming clashes."
+author: "ahyaanlakhani"
+branding:
+  icon: "search"
+  color: "purple"
+
+inputs:
+  path:
+    description: "Path to the .claude/skills/ directory to lint."
+    required: false
+    default: ".claude/skills"
+  strict:
+    description: "Exit non-zero on warnings as well as errors."
+    required: false
+    default: "false"
+  semantic:
+    description: "Install the semantic extra (sentence-transformers) for embedding-based similarity."
+    required: false
+    default: "false"
+  json:
+    description: "Emit findings as JSON instead of a table."
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install ClaudeLens
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "${{ inputs.semantic }}" = "true" ]; then
+          pip install "claudelens[semantic]"
+        else
+          pip install claudelens
+        fi
+
+    - name: Run ClaudeLens
+      shell: bash
+      run: |
+        set -euo pipefail
+        args=()
+        if [ "${{ inputs.strict }}" = "true" ]; then args+=(--strict); fi
+        if [ "${{ inputs.json }}" = "true" ]; then args+=(--json); fi
+        claudelens lint "${{ inputs.path }}" "${args[@]}"

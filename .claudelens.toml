@@ -1,0 +1,11 @@
+# ClaudeLens self-config. Used when running claudelens on this repo's
+# tests/fixtures/skills directory.
+
+[thresholds]
+description_similarity = 0.82
+name_similarity = 0.85
+trigger_overlap = 0.5
+
+[ignore]
+# Example: keep this empty for now so fixtures actually fire findings.
+pairs = []
