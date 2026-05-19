@@ -20,6 +20,10 @@ _RESERVED = {
 }
 
 
+def _tokens(slug: str) -> frozenset[str]:
+    return frozenset(t for t in slug.lower().replace("_", "-").split("-") if t)
+
+
 def check_naming(skills: list[Skill], config: Config) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -59,13 +63,37 @@ def check_naming(skills: list[Skill], config: Config) -> list[Finding]:
                     )
                 )
 
-    # 3. Near-duplicate slugs (warning).
+    # 3a. Token-containment: one slug's tokens are a subset of another's.
+    # Catches "review" vs "pr-review" — a common routing collision pattern.
+    token_sets = {s.name: _tokens(s.name) for s in skills}
+    for a, b in combinations(skills, 2):
+        if config.is_ignored(a.name, b.name):
+            continue
+        ta, tb = token_sets[a.name], token_sets[b.name]
+        if not ta or not tb or ta == tb:
+            continue
+        if ta <= tb or tb <= ta:
+            findings.append(
+                Finding(
+                    check="naming.token-containment",
+                    severity=Severity.WARNING,
+                    skills=(a.name, b.name),
+                    message=(
+                        f"Skill names '{a.name}' and '{b.name}' share all tokens of "
+                        f"the shorter slug; routing may be ambiguous"
+                    ),
+                )
+            )
+
+    # 3b. Near-duplicate slugs by edit ratio (catches typos like 'depoly' vs 'deploy').
     threshold = config.thresholds.name_similarity
     for a, b in combinations(skills, 2):
         if config.is_ignored(a.name, b.name):
             continue
         if a.name.lower() == b.name.lower():
             continue  # already covered above
+        if token_sets[a.name] <= token_sets[b.name] or token_sets[b.name] <= token_sets[a.name]:
+            continue  # already covered by token-containment
         ratio = SequenceMatcher(None, a.name.lower(), b.name.lower()).ratio()
         if ratio >= threshold:
             findings.append(

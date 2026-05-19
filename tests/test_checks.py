@@ -10,11 +10,17 @@ def _load(fixtures_dir: Path):
     return scan(fixtures_dir / "skills").skills
 
 
-def test_naming_flags_near_duplicate(fixtures_dir: Path):
+def test_naming_flags_token_containment(fixtures_dir: Path):
     skills = _load(fixtures_dir)
     findings = check_naming(skills, Config())
-    pairs = {tuple(sorted(f.skills)) for f in findings if f.check == "naming.near-duplicate"}
+    pairs = {
+        tuple(sorted(f.skills))
+        for f in findings
+        if f.check == "naming.token-containment"
+    }
+    # "review" is a token-subset of both "pr-review" and "security-review".
     assert ("pr-review", "review") in pairs
+    assert ("review", "security-review") in pairs
 
 
 def test_descriptions_flag_overlap(fixtures_dir: Path):
