@@ -22,6 +22,12 @@ poetry.lock
 .ruff_cache/
 .mypy_cache/
 
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
 # IDE
 .vscode/
 .idea/
