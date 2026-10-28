@@ -41,9 +41,8 @@ def _candidate_files(skills_dir: Path):
     # Folder-based: <skills_dir>/<slug>/SKILL.md (case-insensitive)
     for entry in sorted(skills_dir.iterdir()):
         if entry.is_dir():
-            for candidate in ("SKILL.md", "skill.md", "Skill.md"):
-                f = entry / candidate
-                if f.is_file():
+            for f in sorted(entry.iterdir()):
+                if f.name.lower() == "skill.md" and f.is_file():
                     yield f
                     break
         elif entry.is_file() and entry.suffix.lower() == ".md":
